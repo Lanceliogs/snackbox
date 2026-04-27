@@ -20,7 +20,7 @@ build/
 *.egg-info/
 *.egg
 .eggs/
-release/
+*-release/
 
 # IDE
 .idea/

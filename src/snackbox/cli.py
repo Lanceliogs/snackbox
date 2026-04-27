@@ -53,7 +53,7 @@ def main(
 
 def _run_build(config: Config, clean: bool, force: bool) -> tuple[Path, str]:
     """Run the build pipeline and return (release_dir, version)."""
-    release_dir = config.project_root / "release"
+    release_dir = config.project_root / f"{config.app.slug}-release"
 
     # Step 1: Setup embedded Python
     setup_python(config, release_dir, clean=clean, echo=typer.echo)
@@ -78,12 +78,15 @@ def _run_build(config: Config, clean: bool, force: bool) -> tuple[Path, str]:
 
 @app.command()
 def build(
+    config_file: Path | None = typer.Option(
+        None, "--file", "-f", help="Path to snackbox.yaml config file."
+    ),
     clean: bool = typer.Option(False, "--clean", help="Rebuild embedded Python from scratch."),
     force: bool = typer.Option(False, "--force", help="Force reinstall the app wheel (keep deps)."),
 ) -> None:
     """Build release folder."""
     try:
-        config = load_config()
+        config = load_config(config_file)
     except ConfigError as e:
         typer.echo(f"Error: {e}")
         raise typer.Exit(1)
@@ -103,12 +106,15 @@ def build(
 
 @app.command()
 def installer(
+    config_file: Path | None = typer.Option(
+        None, "--file", "-f", help="Path to snackbox.yaml config file."
+    ),
     clean: bool = typer.Option(False, "--clean", help="Rebuild embedded Python from scratch."),
     force: bool = typer.Option(False, "--force", help="Force reinstall the app wheel (keep deps)."),
 ) -> None:
     """Build release folder and Inno Setup installer."""
     try:
-        config = load_config()
+        config = load_config(config_file)
     except ConfigError as e:
         typer.echo(f"Error: {e}")
         raise typer.Exit(1)

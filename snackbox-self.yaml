@@ -1,0 +1,13 @@
+# snackbox.yaml for snackbox itself
+app:
+  name: "Snackbox"
+  slug: "snackbox"
+  version_from: "pyproject.toml"
+launcher:
+  entry_point: "snackbox"
+  console: "yes"
+installer:
+  enabled: true
+  publisher: "Lanceliogs"
+  install_dir: "{localappdata}\\Snackbox"
+  add_to_path: true
