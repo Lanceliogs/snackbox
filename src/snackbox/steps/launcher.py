@@ -1,6 +1,5 @@
 """Build the launcher executable."""
 
-import os
 import subprocess
 import tempfile
 from collections.abc import Callable
@@ -8,9 +7,11 @@ from pathlib import Path
 
 from jinja2 import Template
 
+from snackbox.cache import CacheManager
 from snackbox.config import Config
 from snackbox.errors import BuildError
 from snackbox.templates import read_template
+from snackbox.toolchain import get_gcc, get_windres
 
 
 def build_launcher(
@@ -37,14 +38,12 @@ def build_launcher(
     env_vars = config.launcher.env
     icon_path = config.app.icon
 
-    echo(f"Building launcher ({console_mode} mode)...")
+    echo(f"Building launcher (console={console_mode})...")
 
-    # Find GCC and windres
-    gcc = os.environ.get("SNACKBOX_GCC", "gcc")
-    windres = os.environ.get("SNACKBOX_WINDRES", "windres")
-
-    # Check GCC is available
-    _check_tool(gcc, "GCC")
+    # Get GCC and windres (auto-downloads MinGW if needed)
+    cache = CacheManager()
+    gcc = get_gcc(cache, echo)
+    windres = get_windres(cache, echo)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
@@ -65,7 +64,6 @@ def build_launcher(
         if icon_path:
             icon_full_path = config.resolve_path(icon_path)
             if icon_full_path.exists():
-                _check_tool(windres, "windres")
                 res_file = _compile_resource(
                     tmp, slug, icon_full_path, windres, echo
                 )
@@ -80,23 +78,6 @@ def build_launcher(
 
     echo(f"  Built: {exe_path.name}")
     return exe_path
-
-
-def _check_tool(tool: str, name: str) -> None:
-    """Check if a tool is available."""
-    try:
-        result = subprocess.run(
-            [tool, "--version"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            raise BuildError(f"{name} not working: {tool}")
-    except FileNotFoundError as e:
-        raise BuildError(
-            f"{name} not found: {tool}\n"
-            f"Install MinGW-w64 or set SNACKBOX_{name.upper()} environment variable."
-        ) from e
 
 
 def _compile_resource(

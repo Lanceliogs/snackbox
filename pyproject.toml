@@ -2,9 +2,23 @@
 name = "snackbox"
 version = "0.1.0"
 description = "Release pipeline for Python apps on Windows — embedded Python, launcher stub, Inno Setup installer."
-authors = ["Your Name <you@example.com>"]
+authors = ["Lanceliogs <lanceliogs@users.noreply.github.com>"]
 readme = "README.md"
 license = "MIT"
+homepage = "https://github.com/Lanceliogs/snackbox"
+repository = "https://github.com/Lanceliogs/snackbox"
+keywords = ["windows", "packaging", "release", "embedded-python", "inno-setup"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Build Tools",
+]
 packages = [{ include = "snackbox", from = "src" }]
 include = [
     { path = "src/snackbox/templates/*.yaml", format = ["sdist", "wheel"] },

@@ -1,15 +1,16 @@
 """Build Inno Setup installer."""
 
-import os
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
 from jinja2 import Template
 
+from snackbox.cache import CacheManager
 from snackbox.config import Config
 from snackbox.errors import BuildError
 from snackbox.templates import read_template
+from snackbox.toolchain import get_iscc
 
 
 def build_installer(
@@ -38,8 +39,9 @@ def build_installer(
 
     echo("Building installer...")
 
-    # Find ISCC
-    iscc = _find_iscc()
+    # Get ISCC (auto-downloads Inno Setup if needed)
+    cache = CacheManager()
+    iscc = get_iscc(cache, echo)
 
     # Prepare output directory
     output_dir = config.resolve_path(config.installer.output_dir)
@@ -92,44 +94,6 @@ def build_installer(
 
     echo(f"  Built: {installer_path.name}")
     return installer_path
-
-
-def _find_iscc() -> str:
-    """Find Inno Setup compiler."""
-    # Check environment variable first
-    iscc_env = os.environ.get("SNACKBOX_ISCC_PATH")
-    if iscc_env:
-        return iscc_env
-
-    # Common installation paths on Windows
-    common_paths = [
-        r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
-        r"C:\Program Files\Inno Setup 6\ISCC.exe",
-        r"C:\Program Files (x86)\Inno Setup 5\ISCC.exe",
-        r"C:\Program Files\Inno Setup 5\ISCC.exe",
-    ]
-
-    for path in common_paths:
-        if Path(path).exists():
-            return path
-
-    # Try PATH
-    try:
-        result = subprocess.run(
-            ["where", "ISCC"],
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode == 0:
-            return result.stdout.strip().split("\n")[0]
-    except (OSError, FileNotFoundError):
-        pass
-
-    raise BuildError(
-        "Inno Setup not found.\n"
-        "Install from https://jrsoftware.org/isinfo.php\n"
-        "Or set SNACKBOX_ISCC_PATH environment variable."
-    )
 
 
 def _run_iscc(

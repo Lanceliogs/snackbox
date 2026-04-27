@@ -2,31 +2,13 @@
 
 import contextlib
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from snackbox.config import load_config
 from snackbox.errors import BuildError
-from snackbox.steps.launcher import _check_tool, build_launcher
-
-
-class TestCheckTool:
-    def test_tool_available(self):
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
-            _check_tool("gcc", "GCC")  # Should not raise
-
-    def test_tool_not_found(self):
-        with patch("subprocess.run", side_effect=FileNotFoundError), \
-             pytest.raises(BuildError, match="GCC not found"):
-            _check_tool("gcc", "GCC")
-
-    def test_tool_not_working(self):
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=1)
-            with pytest.raises(BuildError, match="GCC not working"):
-                _check_tool("gcc", "GCC")
+from snackbox.steps.launcher import build_launcher
 
 
 class TestBuildLauncher:
@@ -41,7 +23,8 @@ class TestBuildLauncher:
             nonlocal rendered_c
             rendered_c = c_file.read_text()
 
-        with patch("snackbox.steps.launcher._check_tool"), \
+        with patch("snackbox.steps.launcher.get_gcc", return_value="gcc"), \
+             patch("snackbox.steps.launcher.get_windres", return_value="windres"), \
              patch("snackbox.steps.launcher._compile_launcher") as mock_compile, \
              contextlib.suppress(Exception):
             mock_compile.side_effect = capture_compile
@@ -68,6 +51,6 @@ class TestBuildLauncher:
         release_dir = tmp_project / "release"
         release_dir.mkdir()
 
-        with patch("subprocess.run", side_effect=FileNotFoundError), \
+        with patch("snackbox.steps.launcher.get_gcc", side_effect=BuildError("GCC not found")), \
              pytest.raises(BuildError, match="GCC not found"):
             build_launcher(config, release_dir, echo=lambda x: None)

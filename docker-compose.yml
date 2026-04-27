@@ -1,0 +1,6 @@
+services:
+  snackbox:
+    build: .
+    volumes:
+      - .:/project
+    working_dir: /project
