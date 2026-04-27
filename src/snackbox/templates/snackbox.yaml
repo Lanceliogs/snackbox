@@ -1,0 +1,62 @@
+# snackbox.yaml - Configuration for snackbox release pipeline
+# Documentation: https://github.com/Lanceliogs/snackbox
+
+# -- App identity --
+app:
+  name: "My App"                        # Display name (installer, window title)
+  slug: "myapp"                         # Short name for folders, exe, registry
+  version_from: "pyproject.toml"        # Read version from pyproject.toml
+  # icon: "assets/myapp.ico"            # .ico file for launcher and installer
+
+# -- Python --
+python:
+  version: "3.12.10"                    # Embeddable Python version
+  # arch: "amd64"                       # amd64 (default) or win32
+
+# -- Build --
+build:
+  wheel:
+    backend: "poetry"                   # poetry, pip, hatch, or custom
+    # backend_command: "python -m build --wheel"  # custom override
+
+  extra_deps: []                        # Extra pip packages beyond wheel deps
+    # - "some-optional-package==1.2.3"
+
+# -- Launcher stub --
+launcher:
+  entry_point: "myapp"                  # Python module: python -m <entry_point>
+  console: "yes"                        # Console mode:
+                                        #   "yes"   = always show console
+                                        #   "no"    = GUI app, no console window
+                                        #   "attach"= attach to existing terminal,
+                                        #             otherwise run headless
+  # env:                                # Environment variables set by launcher
+  #   MY_VAR: "value"
+
+# -- Assets --
+# Files/directories copied into release folder alongside python/ and launcher
+# Format: "src:dst" or just "src" (copies to release root with same name)
+assets: []
+  # - "config.yaml:config.yaml"
+  # - "assets/data:data"
+  # - "README.md"                   # copies as README.md
+  # - "tools/scripts/run.bat"       # scripts too
+
+# -- Versioning --
+version:
+  git_hash: true                        # Append git short hash (e.g. 1.0.0.abc1234)
+  dirty_flag: true                      # Append .dirty if uncommitted changes
+  save_patch: true                      # Save dirty.patch if repo is dirty
+
+# -- Installer (Inno Setup) --
+installer:
+  enabled: true
+  # template: "installer.iss"           # Custom .iss template (optional)
+  publisher: "Your Name"
+  url: "https://github.com/you/yourproject"
+  # license: "LICENSE"                  # License file shown during install
+  install_dir: "{localappdata}\\MyApp"
+  add_to_path: true
+  desktop_shortcut: false
+  start_menu: true
+  output_dir: "build/installer"

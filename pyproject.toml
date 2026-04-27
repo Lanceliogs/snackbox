@@ -1,19 +1,46 @@
-[project]
+[tool.poetry]
 name = "snackbox"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Julien LANCELOT",email = "julien.lancelot@enovasense.com"}
-]
+description = "Release pipeline for Python apps on Windows — embedded Python, launcher stub, Inno Setup installer."
+authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
+license = "MIT"
+packages = [{ include = "snackbox", from = "src" }]
+include = [
+    { path = "src/snackbox/templates/*.yaml", format = ["sdist", "wheel"] },
+    { path = "src/snackbox/templates/*.c", format = ["sdist", "wheel"] },
+    { path = "src/snackbox/templates/*.rc", format = ["sdist", "wheel"] },
+    { path = "src/snackbox/templates/*.iss", format = ["sdist", "wheel"] },
 ]
 
-[tool.poetry]
-packages = [{include = "snackbox", from = "src"}]
+[tool.poetry.dependencies]
+python = ">=3.10"
+typer = ">=0.9.0"
+pyyaml = ">=6.0"
+jinja2 = ">=3.1"
 
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+ruff = ">=0.4"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "B904",   # raise ... from err (too pedantic for CLI exits)
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.poetry.scripts]
+snackbox = "snackbox.cli:app"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

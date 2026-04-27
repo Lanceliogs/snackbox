@@ -1,0 +1,2 @@
+/* Resource file for {{ slug }}.exe - embeds the application icon */
+1 ICON "{{ icon_path }}"
