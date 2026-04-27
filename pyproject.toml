@@ -45,6 +45,7 @@ target-version = "py310"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = [
     "E501",   # Line too long (handled by formatter)
+    "B008",   # Function call in default argument (typer.Option is designed this way)
     "B904",   # raise ... from err (too pedantic for CLI exits)
 ]
 
