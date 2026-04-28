@@ -1,6 +1,11 @@
 services:
   snackbox:
     build: .
+    image: snackbox:latest
     volumes:
       - .:/project
+      - snackbox-cache:/snackbox/cache
     working_dir: /project
+
+volumes:
+  snackbox-cache:

@@ -1,8 +1,10 @@
 """Setup embedded Python environment."""
 
+import os
 import re
 import shutil
 import subprocess
+import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -11,6 +13,38 @@ from snackbox.config import Config
 from snackbox.errors import BuildError
 
 GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
+
+
+def _is_cross_compile() -> bool:
+    """Check if we're cross-compiling (Linux building for Windows)."""
+    return sys.platform != "win32"
+
+
+def _wine_path(path: Path) -> str:
+    """Convert a Linux path to Wine path format."""
+    # Wine maps /project to Z:\project
+    return "Z:" + str(path).replace("/", "\\")
+
+
+def _run_windows_python(
+    python_exe: Path, args: list[str], cwd: Path | None = None, convert_paths: bool = False
+) -> subprocess.CompletedProcess:
+    """Run Windows Python, using Wine if on Linux."""
+    if _is_cross_compile():
+        # Convert paths in args if needed
+        if convert_paths:
+            args = [_wine_path(Path(a)) if a.startswith("/") else a for a in args]
+        
+        cmd = ["wine", str(python_exe)] + args
+    else:
+        cmd = [str(python_exe)] + args
+    
+    env = os.environ.copy()
+    if _is_cross_compile():
+        env["WINEDEBUG"] = "-all"  # Suppress Wine debug output
+        env["DISPLAY"] = os.environ.get("DISPLAY", ":99")
+    
+    return subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, env=env)
 
 
 def setup_python(
@@ -121,10 +155,9 @@ def _install_pip(python_dir: Path, cache: CacheManager, echo: Callable[[str], No
 
     # Run get-pip.py
     try:
-        result = subprocess.run(
-            [str(python_exe), str(get_pip_path), "--no-warn-script-location"],
-            capture_output=True,
-            text=True,
+        result = _run_windows_python(
+            python_exe,
+            [str(get_pip_path), "--no-warn-script-location"],
             cwd=python_dir,
         )
         if result.returncode != 0:

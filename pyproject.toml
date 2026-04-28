@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "snackbox"
-version = "0.1.0"
+version = "0.1.1"
 description = "Release pipeline for Python apps on Windows — embedded Python, launcher stub, Inno Setup installer."
 authors = ["Lanceliogs <lanceliogs@users.noreply.github.com>"]
 readme = "README.md"

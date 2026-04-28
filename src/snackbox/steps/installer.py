@@ -1,5 +1,6 @@
 """Build Inno Setup installer."""
 
+import os
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
@@ -9,6 +10,7 @@ from jinja2 import Template
 from snackbox.cache import CacheManager
 from snackbox.config import Config
 from snackbox.errors import BuildError
+from snackbox.steps.python import _is_cross_compile, _wine_path
 from snackbox.templates import read_template
 from snackbox.toolchain import get_iscc
 
@@ -70,6 +72,14 @@ def build_installer(
         if icon_full.exists():
             icon_path = str(icon_full)
 
+    # Convert paths to Wine format if cross-compiling
+    if _is_cross_compile():
+        iss_output_dir = _wine_path(output_dir.resolve())
+        iss_release_dir = _wine_path(release_dir.resolve())
+    else:
+        iss_output_dir = str(output_dir.resolve())
+        iss_release_dir = str(release_dir.resolve())
+
     iss_content = template.render(
         app_name=config.app.name,
         slug=config.app.slug,
@@ -77,8 +87,8 @@ def build_installer(
         publisher=config.installer.publisher,
         url=config.installer.url,
         install_dir=config.installer.install_dir,
-        output_dir=str(output_dir.resolve()),
-        release_dir=str(release_dir.resolve()),
+        output_dir=iss_output_dir,
+        release_dir=iss_release_dir,
         icon_path=icon_path,
         add_to_path=config.installer.add_to_path,
         desktop_shortcut=config.installer.desktop_shortcut,
@@ -105,10 +115,20 @@ def _run_iscc(
 ) -> Path:
     """Run ISCC to compile the installer."""
     try:
+        if _is_cross_compile():
+            # Use Wine to run ISCC on Linux
+            cmd = ["wine", iscc, str(iss_path)]
+            env = os.environ.copy()
+            env["WINEDEBUG"] = "-all"
+        else:
+            cmd = [iscc, str(iss_path)]
+            env = None
+
         result = subprocess.run(
-            [iscc, str(iss_path)],
+            cmd,
             capture_output=True,
             text=True,
+            env=env,
         )
         if result.returncode != 0:
             raise BuildError(f"ISCC failed:\n{result.stdout}\n{result.stderr}")

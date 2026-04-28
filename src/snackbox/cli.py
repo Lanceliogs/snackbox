@@ -55,6 +55,13 @@ def _run_build(config: Config, clean: bool, force: bool) -> tuple[Path, str]:
     """Run the build pipeline and return (release_dir, version)."""
     release_dir = config.project_root / f"{config.app.slug}-release"
 
+    # Show cache location
+    cache_dir = get_cache_dir()
+    if _is_docker():
+        typer.echo(f"Using Docker cache: {cache_dir}")
+    else:
+        typer.echo(f"Using cache: {cache_dir}")
+
     # Step 1: Setup embedded Python
     setup_python(config, release_dir, clean=clean, echo=typer.echo)
 
@@ -154,9 +161,18 @@ def init(
     typer.echo("Edit the file to match your project, then run: snackbox build")
 
 
+def _is_docker() -> bool:
+    """Check if running inside a Docker container."""
+    return Path("/.dockerenv").exists()
+
+
 @cache_app.command("show")
 def cache_show() -> None:
     """Show cache location and contents."""
+    if _is_docker():
+        typer.echo("Note: Running in Docker. This shows the container's cache, not your host cache.")
+        typer.echo("      Cache commands are intended for local (pipx) installs.\n")
+
     cache = CacheManager()
     cache_dir = get_cache_dir()
 
@@ -188,6 +204,12 @@ def cache_clean(
     force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation prompt."),
 ) -> None:
     """Wipe the download cache."""
+    if _is_docker():
+        typer.echo("Note: Running in Docker. This only cleans the container's ephemeral cache.")
+        typer.echo("      The container cache is discarded when the container exits anyway.")
+        typer.echo("      Cache commands are intended for local (pipx) installs.")
+        return
+
     cache = CacheManager()
     cache_dir = get_cache_dir()
 

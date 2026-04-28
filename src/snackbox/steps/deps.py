@@ -6,6 +6,7 @@ from pathlib import Path
 
 from snackbox.config import Config
 from snackbox.errors import BuildError
+from snackbox.steps.python import _is_cross_compile, _run_windows_python
 
 
 def install_deps(
@@ -55,26 +56,32 @@ def _pip_install(python_exe: Path, packages: list[str], force: bool = False) -> 
     Raises:
         BuildError: If pip install fails
     """
-    cmd = [
-        str(python_exe),
-        "-m",
-        "pip",
-        "install",
-        "--no-warn-script-location",
-    ]
+    if _is_cross_compile():
+        # Cross-compiling: use Linux pip with --target to install into Windows site-packages
+        site_packages = python_exe.parent / "Lib" / "site-packages"
+        cmd = ["pip3", "install", "--target", str(site_packages), "--no-warn-script-location"]
+        if force:
+            cmd.append("--force-reinstall")
+        cmd.extend(packages)
+        
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                error_msg = result.stderr or result.stdout or "(no output)"
+                raise BuildError(f"pip install failed:\n{error_msg}")
+        except OSError as e:
+            raise BuildError(f"Failed to run pip: {e}") from e
+    else:
+        # Native Windows: use Windows Python's pip
+        args = ["-m", "pip", "install", "--no-warn-script-location"]
+        if force:
+            args.append("--force-reinstall")
+        args.extend(packages)
 
-    if force:
-        cmd.append("--force-reinstall")
-
-    cmd.extend(packages)
-
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            raise BuildError(f"pip install failed:\n{result.stderr or result.stdout}")
-    except OSError as e:
-        raise BuildError(f"Failed to run pip: {e}") from e
+        try:
+            result = _run_windows_python(python_exe, args)
+            if result.returncode != 0:
+                error_msg = result.stderr or result.stdout or "(no output)"
+                raise BuildError(f"pip install failed:\n{error_msg}")
+        except OSError as e:
+            raise BuildError(f"Failed to run pip: {e}") from e
