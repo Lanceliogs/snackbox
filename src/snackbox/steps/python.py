@@ -34,16 +34,16 @@ def _run_windows_python(
         # Convert paths in args if needed
         if convert_paths:
             args = [_wine_path(Path(a)) if a.startswith("/") else a for a in args]
-        
+
         cmd = ["wine", str(python_exe)] + args
     else:
         cmd = [str(python_exe)] + args
-    
+
     env = os.environ.copy()
     if _is_cross_compile():
         env["WINEDEBUG"] = "-all"  # Suppress Wine debug output
         env["DISPLAY"] = os.environ.get("DISPLAY", ":99")
-    
+
     return subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, env=env)
 
 

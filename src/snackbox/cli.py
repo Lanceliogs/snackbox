@@ -170,7 +170,9 @@ def _is_docker() -> bool:
 def cache_show() -> None:
     """Show cache location and contents."""
     if _is_docker():
-        typer.echo("Note: Running in Docker. This shows the container's cache, not your host cache.")
+        typer.echo(
+            "Note: Running in Docker. This shows the container's cache, not your host cache."
+        )
         typer.echo("      Cache commands are intended for local (pipx) installs.\n")
 
     cache = CacheManager()

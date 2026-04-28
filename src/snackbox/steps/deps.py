@@ -63,7 +63,7 @@ def _pip_install(python_exe: Path, packages: list[str], force: bool = False) -> 
         if force:
             cmd.append("--force-reinstall")
         cmd.extend(packages)
-        
+
         try:
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
