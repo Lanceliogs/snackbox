@@ -20,16 +20,16 @@ def setup_python(
     echo: Callable[[str], None] = print,
 ) -> Path:
     """Download and setup embedded Python in the release directory.
-    
+
     Args:
         config: Snackbox configuration
         release_dir: Path to the release directory
         clean: If True, remove existing Python and start fresh
         echo: Function to print status messages
-        
+
     Returns:
         Path to the python directory (release_dir/python)
-        
+
     Raises:
         BuildError: If setup fails
     """
@@ -80,7 +80,7 @@ def setup_python(
 
 def _patch_pth_file(python_dir: Path, version: str) -> None:
     """Patch the python._pth file to enable site-packages.
-    
+
     The embeddable Python ships with site-packages disabled.
     We need to uncomment 'import site' to enable it.
     """

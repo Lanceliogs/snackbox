@@ -43,8 +43,6 @@ class AssetEntry:
     dst: str
 
 
-
-
 @dataclass
 class VersionConfig:
     git_hash: bool = True
@@ -150,7 +148,7 @@ def _parse_launcher(data: dict[str, Any]) -> LauncherConfig:
 
 def _parse_assets(data: dict[str, Any]) -> list[AssetEntry]:
     """Parse the assets section.
-    
+
     Supports two formats:
       - Short: "src:dst" or "src" (dst defaults to basename)
       - Long: {src: "...", dst: "..."}
@@ -172,8 +170,6 @@ def _parse_assets(data: dict[str, Any]) -> list[AssetEntry]:
             raise ConfigError(f"Invalid asset entry: {a}")
 
     return result
-
-
 
 
 def _parse_version(data: dict[str, Any]) -> VersionConfig:

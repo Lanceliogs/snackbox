@@ -14,15 +14,15 @@ def stamp_version(
     echo: Callable[[str], None] = print,
 ) -> str:
     """Generate version string and write version.txt.
-    
+
     Args:
         config: Snackbox configuration
         release_dir: Path to the release directory
         echo: Function to print status messages
-        
+
     Returns:
         The full version string
-        
+
     Raises:
         BuildError: If version stamping fails
     """

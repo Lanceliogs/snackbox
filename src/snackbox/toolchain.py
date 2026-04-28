@@ -28,7 +28,7 @@ def get_gcc(
     echo: Callable[[str], None] = print,
 ) -> str:
     """Get path to GCC, downloading if necessary.
-    
+
     Returns the path to gcc.exe (or the command if using system GCC).
     """
     # Check environment variable first

@@ -140,11 +140,13 @@ class TestParseAssets:
         assert assets[0].dst == "b.txt"
 
     def test_mixed_formats(self):
-        data = {"assets": [
-            "file1.txt:dest1.txt",
-            {"src": "file2.txt", "dst": "dest2.txt"},
-            "file3.txt",
-        ]}
+        data = {
+            "assets": [
+                "file1.txt:dest1.txt",
+                {"src": "file2.txt", "dst": "dest2.txt"},
+                "file3.txt",
+            ]
+        }
         assets = _parse_assets(data)
         assert len(assets) == 3
 
@@ -173,11 +175,13 @@ class TestParseInstaller:
         assert inst.start_menu is True
 
     def test_custom_values(self):
-        data = {"installer": {
-            "enabled": False,
-            "publisher": "Test",
-            "url": "https://test.com",
-        }}
+        data = {
+            "installer": {
+                "enabled": False,
+                "publisher": "Test",
+                "url": "https://test.com",
+            }
+        }
         inst = _parse_installer(data)
         assert inst.enabled is False
         assert inst.publisher == "Test"

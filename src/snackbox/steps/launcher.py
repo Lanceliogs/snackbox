@@ -20,15 +20,15 @@ def build_launcher(
     echo: Callable[[str], None] = print,
 ) -> Path:
     """Build the launcher executable.
-    
+
     Args:
         config: Snackbox configuration
         release_dir: Path to the release directory
         echo: Function to print status messages
-        
+
     Returns:
         Path to the built executable
-        
+
     Raises:
         BuildError: If build fails
     """
@@ -64,17 +64,13 @@ def build_launcher(
         if icon_path:
             icon_full_path = config.resolve_path(icon_path)
             if icon_full_path.exists():
-                res_file = _compile_resource(
-                    tmp, slug, icon_full_path, windres, echo
-                )
+                res_file = _compile_resource(tmp, slug, icon_full_path, windres, echo)
             else:
                 echo(f"  Warning: icon not found: {icon_full_path}")
 
         # Compile the launcher
         exe_path = release_dir / f"{slug}.exe"
-        _compile_launcher(
-            c_file, exe_path, res_file, console_mode, gcc, echo
-        )
+        _compile_launcher(c_file, exe_path, res_file, console_mode, gcc, echo)
 
     echo(f"  Built: {exe_path.name}")
     return exe_path

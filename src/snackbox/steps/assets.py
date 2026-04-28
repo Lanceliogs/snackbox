@@ -14,12 +14,12 @@ def copy_assets(
     echo: Callable[[str], None] = print,
 ) -> None:
     """Copy configured assets into the release folder.
-    
+
     Args:
         config: Snackbox configuration
         release_dir: Path to the release directory
         echo: Function to print status messages
-        
+
     Raises:
         BuildError: If copying fails
     """

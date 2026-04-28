@@ -32,8 +32,10 @@ class TestRunPoetryBuild:
                 _run_poetry_build(tmp_path)
 
     def test_not_found(self, tmp_path: Path):
-        with patch("subprocess.run", side_effect=FileNotFoundError), \
-             pytest.raises(BuildError, match="poetry not found"):
+        with (
+            patch("subprocess.run", side_effect=FileNotFoundError),
+            pytest.raises(BuildError, match="poetry not found"),
+        ):
             _run_poetry_build(tmp_path)
 
 
@@ -93,26 +95,27 @@ class TestBuildWheel:
 
     def test_no_wheel_found(self, tmp_project: Path):
         config = load_config(tmp_project / "snackbox.yaml")
-        
+
         # Ensure dist dir exists but is empty
         dist_dir = tmp_project / "dist"
         dist_dir.mkdir(exist_ok=True)
         for f in dist_dir.glob("*.whl"):
             f.unlink()
 
-        with patch("snackbox.steps.wheel._run_poetry_build"), \
-             pytest.raises(BuildError, match="No wheel found"):
+        with (
+            patch("snackbox.steps.wheel._run_poetry_build"),
+            pytest.raises(BuildError, match="No wheel found"),
+        ):
             build_wheel(config, echo=lambda x: None)
 
     def test_uses_custom_command(self, tmp_project: Path):
         config_file = tmp_project / "snackbox.yaml"
         content = config_file.read_text()
         content = content.replace(
-            'backend: "poetry"',
-            'backend: "poetry"\n    backend_command: "custom build"'
+            'backend: "poetry"', 'backend: "poetry"\n    backend_command: "custom build"'
         )
         config_file.write_text(content)
-        
+
         config = load_config(config_file)
         dist_dir = tmp_project / "dist"
         wheel_file = dist_dir / "test-1.0.0-py3-none-any.whl"
@@ -121,6 +124,8 @@ class TestBuildWheel:
             dist_dir.mkdir(exist_ok=True)
             wheel_file.write_text("fake")
 
-        with patch("snackbox.steps.wheel._run_custom_command", side_effect=fake_custom) as mock_custom:
+        with patch(
+            "snackbox.steps.wheel._run_custom_command", side_effect=fake_custom
+        ) as mock_custom:
             build_wheel(config, echo=lambda x: None)
             mock_custom.assert_called_once()

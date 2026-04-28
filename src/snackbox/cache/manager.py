@@ -13,7 +13,7 @@ from snackbox.errors import CacheError
 
 def get_cache_dir() -> Path:
     """Get the cache directory path.
-    
+
     Uses SNACKBOX_CACHE_DIR env var if set, otherwise ~/.snackbox/cache/
     """
     env_dir = os.environ.get("SNACKBOX_CACHE_DIR")
@@ -43,15 +43,15 @@ class CacheManager:
         progress_callback: Callable[[int, int], None] | None = None,
     ) -> Path:
         """Download a file from URL to destination.
-        
+
         Args:
             url: URL to download from
             dest: Destination file path
             progress_callback: Optional callback(downloaded_bytes, total_bytes)
-            
+
         Returns:
             Path to the downloaded file
-            
+
         Raises:
             CacheError: If download fails
         """
@@ -85,14 +85,14 @@ class CacheManager:
 
     def extract_zip(self, zip_path: Path, dest_dir: Path) -> Path:
         """Extract a zip file to destination directory.
-        
+
         Args:
             zip_path: Path to the zip file
             dest_dir: Directory to extract to
-            
+
         Returns:
             Path to the extraction directory
-            
+
         Raises:
             CacheError: If extraction fails
         """
@@ -109,11 +109,11 @@ class CacheManager:
 
     def get_python_zip(self, version: str, arch: str = "amd64") -> Path:
         """Get path to cached Python embeddable zip.
-        
+
         Args:
             version: Python version (e.g., "3.12.10")
             arch: Architecture ("amd64" or "win32")
-            
+
         Returns:
             Path where the zip is/should be cached
         """
@@ -126,7 +126,7 @@ class CacheManager:
 
     def list_cached_items(self) -> dict[str, list[str]]:
         """List all cached items.
-        
+
         Returns:
             Dict with categories as keys and lists of filenames as values
         """

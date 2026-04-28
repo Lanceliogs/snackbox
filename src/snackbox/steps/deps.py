@@ -16,14 +16,14 @@ def install_deps(
     echo: Callable[[str], None] = print,
 ) -> None:
     """Install the wheel and extra dependencies into embedded Python.
-    
+
     Args:
         config: Snackbox configuration
         release_dir: Path to the release directory
         wheel_path: Path to the wheel file to install
         force: If True, force reinstall even if already installed
         echo: Function to print status messages
-        
+
     Raises:
         BuildError: If installation fails
     """
@@ -46,12 +46,12 @@ def install_deps(
 
 def _pip_install(python_exe: Path, packages: list[str], force: bool = False) -> None:
     """Run pip install for the given packages.
-    
+
     Args:
         python_exe: Path to python.exe
         packages: List of packages/wheels to install
         force: If True, add --force-reinstall flag
-        
+
     Raises:
         BuildError: If pip install fails
     """

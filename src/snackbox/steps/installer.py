@@ -20,16 +20,16 @@ def build_installer(
     echo: Callable[[str], None] = print,
 ) -> Path:
     """Build Inno Setup installer.
-    
+
     Args:
         config: Snackbox configuration
         release_dir: Path to the release directory
         version: Version string for the installer
         echo: Function to print status messages
-        
+
     Returns:
         Path to the built installer
-        
+
     Raises:
         BuildError: If build fails
     """

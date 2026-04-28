@@ -13,14 +13,14 @@ def build_wheel(
     echo: Callable[[str], None] = print,
 ) -> Path:
     """Build the project wheel using the configured backend.
-    
+
     Args:
         config: Snackbox configuration
         echo: Function to print status messages
-        
+
     Returns:
         Path to the built wheel file
-        
+
     Raises:
         BuildError: If build fails
     """
@@ -71,9 +71,7 @@ def _run_command(cmd: list[str], cwd: Path, name: str) -> None:
             text=True,
         )
         if result.returncode != 0:
-            raise BuildError(
-                f"{name} build failed:\n{result.stderr or result.stdout}"
-            )
+            raise BuildError(f"{name} build failed:\n{result.stderr or result.stdout}")
     except FileNotFoundError as e:
         raise BuildError(f"{name} not found. Is it installed?") from e
     except OSError as e:
@@ -120,8 +118,6 @@ def _run_custom_command(command: str, project_root: Path) -> None:
             text=True,
         )
         if result.returncode != 0:
-            raise BuildError(
-                f"Custom build command failed:\n{result.stderr or result.stdout}"
-            )
+            raise BuildError(f"Custom build command failed:\n{result.stderr or result.stdout}")
     except OSError as e:
         raise BuildError(f"Failed to run custom command: {e}") from e
