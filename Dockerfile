@@ -15,8 +15,12 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Inno Setup under Wine
-RUN mkdir -p /root/.wine && \
+# Initialize Wine and install Inno Setup
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y wine32 && \
+    rm -rf /var/lib/apt/lists/* && \
+    wineboot --init && \
     wget -q https://jrsoftware.org/download.php/is.exe -O /tmp/is.exe && \
     xvfb-run wine /tmp/is.exe /VERYSILENT /SUPPRESSMSGBOXES /DIR="C:\\InnoSetup" && \
     rm /tmp/is.exe
