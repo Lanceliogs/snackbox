@@ -72,20 +72,24 @@ def build_installer(
         if icon_full.exists():
             icon_path = str(icon_full)
 
-    # Convert paths to Wine format if cross-compiling
-    if _is_cross_compile():
-        iss_output_dir = _wine_path(output_dir.resolve())
-        iss_release_dir = _wine_path(release_dir.resolve())
-    else:
-        iss_output_dir = str(output_dir.resolve())
-        iss_release_dir = str(release_dir.resolve())
-
     # Resolve license path if provided
     license_path = None
     if config.installer.license:
         license_full = config.resolve_path(config.installer.license)
         if license_full.exists():
             license_path = str(license_full)
+
+    # Convert paths to Wine format if cross-compiling
+    if _is_cross_compile():
+        iss_output_dir = _wine_path(output_dir.resolve())
+        iss_release_dir = _wine_path(release_dir.resolve())
+        if icon_path:
+            icon_path = _wine_path(Path(icon_path).resolve())
+        if license_path:
+            license_path = _wine_path(Path(license_path).resolve())
+    else:
+        iss_output_dir = str(output_dir.resolve())
+        iss_release_dir = str(release_dir.resolve())
 
     iss_content = template.render(
         app_name=config.app.name,
