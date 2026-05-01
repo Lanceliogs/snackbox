@@ -10,8 +10,8 @@ from snackbox.errors import BuildError
 from snackbox.steps.wheel import (
     _run_custom_command,
     _run_hatch_build,
-    _run_pip_build,
     _run_poetry_build,
+    _run_uv_build,
     build_wheel,
 )
 
@@ -39,17 +39,6 @@ class TestRunPoetryBuild:
             _run_poetry_build(tmp_path)
 
 
-class TestRunPipBuild:
-    def test_success(self, tmp_path: Path):
-        (tmp_path / "dist").mkdir()
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
-            _run_pip_build(tmp_path)
-            mock_run.assert_called_once()
-            cmd = mock_run.call_args[0][0]
-            assert "pip" in cmd
-            assert "wheel" in cmd
-
 
 class TestRunHatchBuild:
     def test_success(self, tmp_path: Path):
@@ -58,6 +47,28 @@ class TestRunHatchBuild:
             _run_hatch_build(tmp_path)
             cmd = mock_run.call_args[0][0]
             assert cmd == ["hatch", "build", "-t", "wheel"]
+
+
+class TestRunUvBuild:
+    def test_success(self, tmp_path: Path):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0)
+            _run_uv_build(tmp_path)
+            cmd = mock_run.call_args[0][0]
+            assert cmd == ["uv", "build", "--wheel"]
+
+    def test_failure(self, tmp_path: Path):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=1, stderr="error")
+            with pytest.raises(BuildError, match="uv build failed"):
+                _run_uv_build(tmp_path)
+
+    def test_not_found(self, tmp_path: Path):
+        with (
+            patch("subprocess.run", side_effect=FileNotFoundError),
+            pytest.raises(BuildError, match="uv not found"),
+        ):
+            _run_uv_build(tmp_path)
 
 
 class TestRunCustomCommand:

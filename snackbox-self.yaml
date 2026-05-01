@@ -3,6 +3,9 @@ app:
   name: "Snackbox"
   slug: "snackbox"
   version_from: "git"
+build:
+  wheel:
+    backend: "uv"
 launcher:
   entry_point: "snackbox"
   console: "yes"

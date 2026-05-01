@@ -16,7 +16,7 @@ python:
 # -- Build --
 build:
   wheel:
-    backend: "poetry"                   # poetry, pip, hatch, or custom
+    backend: "poetry"                   # poetry, hatch, uv, or custom
     # backend_command: "python -m build --wheel"  # custom override
 
   extra_deps: []                        # Extra pip packages beyond wheel deps
