@@ -9,8 +9,10 @@ from snackbox.config import load_config
 from snackbox.errors import BuildError
 from snackbox.steps.version import (
     _get_git_hash,
+    _get_version_from_git_tag,
     _is_git_dirty,
     _read_pyproject_version,
+    _uses_dynamic_versioning,
     stamp_version,
 )
 
@@ -30,6 +32,37 @@ class TestReadPyprojectVersion:
         version = _read_pyproject_version(tmp_path, "pyproject.toml")
         assert version == "2.0.0"
 
+    def test_version_with_inline_comment(self, tmp_path: Path):
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[tool.poetry]\nversion = "1.2.3"  # some comment\n')
+
+        version = _read_pyproject_version(tmp_path, "pyproject.toml")
+        assert version == "1.2.3"
+
+    def test_dynamic_versioning_uses_git_tag(self, tmp_path: Path):
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(
+            '[tool.poetry]\nversion = "0.0.0"\n\n'
+            "[tool.poetry-dynamic-versioning]\nenable = true\n"
+        )
+
+        with patch("snackbox.steps.version._get_version_from_git_tag", return_value="0.5.1"):
+            version = _read_pyproject_version(tmp_path, "pyproject.toml", echo=lambda x: None)
+        assert version == "0.5.1"
+
+    def test_dynamic_versioning_no_tag_falls_back(self, tmp_path: Path):
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(
+            '[tool.poetry]\nversion = "0.0.0"\n\n'
+            "[tool.poetry-dynamic-versioning]\nenable = true\n"
+        )
+
+        messages = []
+        with patch("snackbox.steps.version._get_version_from_git_tag", return_value=None):
+            version = _read_pyproject_version(tmp_path, "pyproject.toml", echo=messages.append)
+        assert version == "0.0.0"
+        assert any("Warning" in m for m in messages)
+
     def test_file_not_found(self, tmp_path: Path):
         with pytest.raises(BuildError, match="Version source not found"):
             _read_pyproject_version(tmp_path, "nonexistent.toml")
@@ -40,6 +73,56 @@ class TestReadPyprojectVersion:
 
         with pytest.raises(BuildError, match="Could not find version"):
             _read_pyproject_version(tmp_path, "pyproject.toml")
+
+
+class TestUsesDynamicVersioning:
+    def test_enabled(self):
+        content = "[tool.poetry-dynamic-versioning]\nenable = true\n"
+        assert _uses_dynamic_versioning(content) is True
+
+    def test_disabled(self):
+        content = "[tool.poetry-dynamic-versioning]\nenable = false\n"
+        assert _uses_dynamic_versioning(content) is False
+
+    def test_missing_section(self):
+        content = '[tool.poetry]\nversion = "1.0.0"\n'
+        assert _uses_dynamic_versioning(content) is False
+
+    def test_section_without_enable(self):
+        content = "[tool.poetry-dynamic-versioning]\nvcs = git\n"
+        assert _uses_dynamic_versioning(content) is False
+
+
+class TestGetVersionFromGitTag:
+    def test_on_tag_returns_version(self, tmp_path: Path):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="v1.2.3-0-gabcdef1\n")
+            result = _get_version_from_git_tag(tmp_path)
+        assert result == "1.2.3"
+
+    def test_after_tag_returns_post_version(self, tmp_path: Path):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="v1.2.3-5-gabcdef1\n")
+            result = _get_version_from_git_tag(tmp_path)
+        assert result == "1.2.3.post5"
+
+    def test_strips_v_prefix(self, tmp_path: Path):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="v0.1.0-0-g1234567\n")
+            result = _get_version_from_git_tag(tmp_path)
+        assert result == "0.1.0"
+
+    def test_works_without_v_prefix(self, tmp_path: Path):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="0.1.0-3-g1234567\n")
+            result = _get_version_from_git_tag(tmp_path)
+        assert result == "0.1.0.post3"
+
+    def test_returns_none_when_no_tags(self, tmp_path: Path):
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=128, stdout="")
+            result = _get_version_from_git_tag(tmp_path)
+        assert result is None
 
 
 class TestGetGitHash:

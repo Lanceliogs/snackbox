@@ -28,8 +28,8 @@ def stamp_version(
     """
     project_root = config.project_root
 
-    # Get base version from pyproject.toml
-    base_version = _read_pyproject_version(project_root, config.app.version_from)
+    # Get base version from pyproject.toml (or git tags if dynamic versioning)
+    base_version = _read_pyproject_version(project_root, config.app.version_from, echo)
 
     version_parts = [base_version]
 
@@ -60,8 +60,12 @@ def stamp_version(
     return version
 
 
-def _read_pyproject_version(project_root: Path, version_from: str) -> str:
-    """Read version from pyproject.toml."""
+def _read_pyproject_version(
+    project_root: Path,
+    version_from: str,
+    echo: Callable[[str], None] = print,
+) -> str:
+    """Read version from pyproject.toml or git tags if dynamic versioning is enabled."""
     pyproject_path = project_root / version_from
 
     if not pyproject_path.exists():
@@ -69,15 +73,71 @@ def _read_pyproject_version(project_root: Path, version_from: str) -> str:
 
     content = pyproject_path.read_text()
 
+    # Check if poetry-dynamic-versioning is enabled
+    if _uses_dynamic_versioning(content):
+        version = _get_version_from_git_tag(project_root)
+        if version:
+            return version
+        echo("  Warning: dynamic versioning enabled but git/tags unavailable, using static version")
+
     # Try Poetry format: version = "x.y.z"
     for line in content.splitlines():
         line = line.strip()
         if line.startswith("version") and "=" in line:
             _, value = line.split("=", 1)
-            value = value.strip().strip('"').strip("'")
+            value = value.strip()
+            # Extract quoted value, ignoring inline comments
+            for quote in ('"', "'"):
+                if value.startswith(quote):
+                    end = value.index(quote, 1)
+                    return value[1:end]
             return value
 
     raise BuildError(f"Could not find version in {version_from}")
+
+
+def _uses_dynamic_versioning(pyproject_content: str) -> bool:
+    """Check if poetry-dynamic-versioning is enabled in pyproject.toml."""
+    in_section = False
+    for line in pyproject_content.splitlines():
+        stripped = line.strip()
+        if stripped == "[tool.poetry-dynamic-versioning]":
+            in_section = True
+        elif stripped.startswith("[") and in_section:
+            break
+        elif in_section and stripped.startswith("enable"):
+            _, value = stripped.split("=", 1)
+            return value.strip().lower() == "true"
+    return False
+
+
+def _get_version_from_git_tag(project_root: Path) -> str | None:
+    """Get the version from git tags.
+
+    Uses `git describe --tags` to get the tag and distance.
+    - On a tag: returns "X.Y.Z"
+    - After a tag: returns "X.Y.Z.postN" where N is commits since tag
+    """
+    try:
+        result = subprocess.run(
+            ["git", "describe", "--tags", "--long"],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            # Format: v0.1.0-3-gabcdef1 (tag-distance-ghash)
+            desc = result.stdout.strip()
+            parts = desc.rsplit("-", 2)
+            if len(parts) == 3:
+                tag, distance, _ = parts
+                base = tag.lstrip("v")
+                if int(distance) > 0:
+                    return f"{base}.post{distance}"
+                return base
+    except (OSError, FileNotFoundError):
+        pass
+    return None
 
 
 def _get_git_hash(project_root: Path) -> str | None:
