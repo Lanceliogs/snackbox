@@ -37,15 +37,13 @@ def install_deps(
 
     # Install the main wheel
     echo(f"Installing {wheel_path.name}...")
-    _uv_install(python_exe, [str(wheel_path)], force=force,
-                python_version=py_version, arch=arch)
+    _uv_install(python_exe, [str(wheel_path)], force=force, python_version=py_version, arch=arch)
 
     # Install extra dependencies
     extra_deps = config.build.extra_deps
     if extra_deps:
         echo(f"Installing {len(extra_deps)} extra dependencies...")
-        _uv_install(python_exe, extra_deps, force=False,
-                    python_version=py_version, arch=arch)
+        _uv_install(python_exe, extra_deps, force=False, python_version=py_version, arch=arch)
 
     echo("Dependencies installed")
 
@@ -77,10 +75,14 @@ def _uv_install(
     major_minor = ".".join(python_version.split(".")[:2])
 
     cmd = [
-        "uv", "pip", "install",
+        "uv",
+        "pip",
+        "install",
         "--system",
-        "--target", str(site_packages),
-        "--python-version", major_minor,
+        "--target",
+        str(site_packages),
+        "--python-version",
+        major_minor,
     ]
 
     if sys.platform != "win32":
@@ -97,8 +99,6 @@ def _uv_install(
             error_msg = result.stderr or result.stdout or "(no output)"
             raise BuildError(f"uv pip install failed:\n{error_msg}")
     except FileNotFoundError:
-        raise BuildError(
-            "uv not found. Install it with: pip install uv"
-        )
+        raise BuildError("uv not found. Install it with: pip install uv")
     except OSError as e:
         raise BuildError(f"Failed to run uv: {e}") from e

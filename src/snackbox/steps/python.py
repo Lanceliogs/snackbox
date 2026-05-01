@@ -109,5 +109,3 @@ def _patch_pth_file(python_dir: Path, version: str) -> None:
         new_content += "\nLib/site-packages\n"
 
     pth_file.write_text(new_content)
-
-
