@@ -50,6 +50,9 @@ ENV SNACKBOX_ISCC_PATH="/root/.wine/drive_c/InnoSetup/ISCC.exe"
 ENV SNACKBOX_GCC=x86_64-w64-mingw32-gcc
 ENV SNACKBOX_WINDRES=x86_64-w64-mingw32-windres
 
+# Allow git to work with mounted repos owned by different users
+RUN git config --global --add safe.directory '*'
+
 WORKDIR /project
 
 # Clean up Xvfb lock from build
