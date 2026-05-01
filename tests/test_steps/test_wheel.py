@@ -39,7 +39,6 @@ class TestRunPoetryBuild:
             _run_poetry_build(tmp_path)
 
 
-
 class TestRunHatchBuild:
     def test_success(self, tmp_path: Path):
         with patch("subprocess.run") as mock_run:
