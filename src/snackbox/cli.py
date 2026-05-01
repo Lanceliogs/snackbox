@@ -144,9 +144,19 @@ def installer(
         raise typer.Exit(1)
 
 
+def _generate_guid() -> str:
+    """Generate a Windows-style GUID with braces."""
+    import uuid
+
+    return "{" + str(uuid.uuid4()).upper() + "}"
+
+
 @app.command()
 def init(
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing snackbox.yaml."),
+    generate_guid: bool = typer.Option(
+        False, "--generate-guid", "-g", help="Generate an AppId GUID for the installer."
+    ),
 ) -> None:
     """Generate a starter snackbox.yaml in the current directory."""
     config_path = Path.cwd() / "snackbox.yaml"
@@ -156,9 +166,25 @@ def init(
         raise typer.Exit(1)
 
     template_content = read_template("snackbox.yaml")
+
+    if generate_guid:
+        guid = _generate_guid()
+        template_content = template_content.replace(
+            '# app_guid: "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"',
+            f'app_guid: "{guid}"',
+        )
+
     config_path.write_text(template_content)
     typer.echo(f"Created {config_path}")
+    if generate_guid:
+        typer.echo(f"Generated AppId: {guid}")
     typer.echo("Edit the file to match your project, then run: snackbox build")
+
+
+@app.command()
+def guid() -> None:
+    """Generate a random Windows AppId GUID."""
+    typer.echo(_generate_guid())
 
 
 def _is_docker() -> bool:

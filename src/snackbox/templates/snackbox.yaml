@@ -52,6 +52,7 @@ version:
 installer:
   enabled: true
   # template: "installer.iss"           # Custom .iss template (optional)
+  # app_guid: "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}"  # GUID for upgrades (snackbox init --generate-guid)
   publisher: "Your Name"
   url: "https://github.com/you/yourproject"
   # license: "LICENSE"                  # License file shown during install
