@@ -171,9 +171,11 @@ class TestParseInstaller:
         inst = _parse_installer({})
         assert inst.enabled is True
         assert inst.app_guid is None
+        assert inst.license is None
         assert inst.add_to_path is True
         assert inst.desktop_shortcut is False
         assert inst.start_menu is True
+        assert inst.run_after_install is True
 
     def test_custom_values(self):
         data = {
@@ -196,6 +198,28 @@ class TestParseInstaller:
         }
         inst = _parse_installer(data)
         assert inst.app_guid == "{61E7BD3B-F815-4BA5-B8AD-AFF42431A546}"
+
+    def test_license(self):
+        data = {
+            "installer": {
+                "license": "LICENSE.txt",
+            }
+        }
+        inst = _parse_installer(data)
+        assert inst.license == "LICENSE.txt"
+
+    def test_checkbox_defaults(self):
+        data = {
+            "installer": {
+                "start_menu": False,
+                "desktop_shortcut": True,
+                "run_after_install": False,
+            }
+        }
+        inst = _parse_installer(data)
+        assert inst.start_menu is False
+        assert inst.desktop_shortcut is True
+        assert inst.run_after_install is False
 
 
 class TestLoadConfig:

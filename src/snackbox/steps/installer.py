@@ -80,6 +80,13 @@ def build_installer(
         iss_output_dir = str(output_dir.resolve())
         iss_release_dir = str(release_dir.resolve())
 
+    # Resolve license path if provided
+    license_path = None
+    if config.installer.license:
+        license_full = config.resolve_path(config.installer.license)
+        if license_full.exists():
+            license_path = str(license_full)
+
     iss_content = template.render(
         app_name=config.app.name,
         slug=config.app.slug,
@@ -87,6 +94,7 @@ def build_installer(
         app_guid=config.installer.app_guid,
         publisher=config.installer.publisher,
         url=config.installer.url,
+        license_path=license_path,
         install_dir=config.installer.install_dir,
         output_dir=iss_output_dir,
         release_dir=iss_release_dir,
@@ -94,6 +102,7 @@ def build_installer(
         add_to_path=config.installer.add_to_path,
         desktop_shortcut=config.installer.desktop_shortcut,
         start_menu=config.installer.start_menu,
+        run_after_install=config.installer.run_after_install,
     )
 
     iss_path.write_text(iss_content)
