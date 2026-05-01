@@ -43,6 +43,16 @@ class TestParseApp:
         with pytest.raises(ConfigError, match="Missing required field 'slug'"):
             _parse_app({"app": {"name": "My App"}})
 
+    def test_version_from_git(self):
+        data = {"app": {"name": "My App", "slug": "myapp", "version_from": "git"}}
+        app = _parse_app(data)
+        assert app.version_from == "git"
+
+    def test_version_from_invalid(self):
+        data = {"app": {"name": "My App", "slug": "myapp", "version_from": "package.json"}}
+        with pytest.raises(ConfigError, match="Invalid version_from"):
+            _parse_app(data)
+
 
 class TestParsePython:
     def test_defaults(self):
