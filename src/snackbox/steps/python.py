@@ -1,9 +1,7 @@
 """Setup embedded Python environment."""
 
-import os
 import re
 import shutil
-import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -11,8 +9,6 @@ from pathlib import Path
 from snackbox.cache import CacheManager
 from snackbox.config import Config
 from snackbox.errors import BuildError
-
-GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
 
 
 def _is_cross_compile() -> bool:
@@ -22,29 +18,7 @@ def _is_cross_compile() -> bool:
 
 def _wine_path(path: Path) -> str:
     """Convert a Linux path to Wine path format."""
-    # Wine maps /project to Z:\project
     return "Z:" + str(path).replace("/", "\\")
-
-
-def _run_windows_python(
-    python_exe: Path, args: list[str], cwd: Path | None = None, convert_paths: bool = False
-) -> subprocess.CompletedProcess:
-    """Run Windows Python, using Wine if on Linux."""
-    if _is_cross_compile():
-        # Convert paths in args if needed
-        if convert_paths:
-            args = [_wine_path(Path(a)) if a.startswith("/") else a for a in args]
-
-        cmd = ["wine", str(python_exe)] + args
-    else:
-        cmd = [str(python_exe)] + args
-
-    env = os.environ.copy()
-    if _is_cross_compile():
-        env["WINEDEBUG"] = "-all"  # Suppress Wine debug output
-        env["DISPLAY"] = os.environ.get("DISPLAY", ":99")
-
-    return subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, env=env)
 
 
 def setup_python(
@@ -104,14 +78,6 @@ def setup_python(
     echo("Patching Python configuration...")
     _patch_pth_file(python_dir, version)
 
-    # Bootstrap pip (skip when cross-compiling — uv handles deps instead,
-    # and Wine+Python is unreliable for network operations)
-    if _is_cross_compile():
-        echo("Skipping pip (cross-compile uses uv)")
-    else:
-        echo("Installing pip...")
-        _install_pip(python_dir, cache, echo)
-
     echo(f"Python {version} ready")
     return python_dir
 
@@ -145,31 +111,3 @@ def _patch_pth_file(python_dir: Path, version: str) -> None:
     pth_file.write_text(new_content)
 
 
-def _install_pip(python_dir: Path, cache: CacheManager, echo: Callable[[str], None]) -> None:
-    """Download and run get-pip.py to install pip."""
-    get_pip_path = cache.tools_dir / "get-pip.py"
-
-    if not get_pip_path.exists():
-        echo("  Downloading get-pip.py...")
-        cache.download(GET_PIP_URL, get_pip_path)
-
-    python_exe = python_dir / "python.exe"
-    if not python_exe.exists():
-        raise BuildError(f"Python executable not found: {python_exe}")
-
-    # Run get-pip.py
-    try:
-        result = _run_windows_python(
-            python_exe,
-            [str(get_pip_path), "--no-warn-script-location"],
-            cwd=python_dir,
-        )
-        if result.returncode != 0:
-            raise BuildError(f"Failed to install pip:\n{result.stderr}")
-    except OSError as e:
-        raise BuildError(f"Failed to run Python: {e}") from e
-
-    # Verify pip is installed
-    pip_exe = python_dir / "Scripts" / "pip.exe"
-    if not pip_exe.exists():
-        raise BuildError("pip installation failed - pip.exe not found")

@@ -1,12 +1,12 @@
 """Install dependencies into embedded Python."""
 
 import subprocess
+import sys
 from collections.abc import Callable
 from pathlib import Path
 
 from snackbox.config import Config
 from snackbox.errors import BuildError
-from snackbox.steps.python import _is_cross_compile, _run_windows_python
 
 
 def install_deps(
@@ -37,72 +37,68 @@ def install_deps(
 
     # Install the main wheel
     echo(f"Installing {wheel_path.name}...")
-    _pip_install(python_exe, [str(wheel_path)], force=force, python_version=py_version, arch=arch)
+    _uv_install(python_exe, [str(wheel_path)], force=force,
+                python_version=py_version, arch=arch)
 
     # Install extra dependencies
     extra_deps = config.build.extra_deps
     if extra_deps:
         echo(f"Installing {len(extra_deps)} extra dependencies...")
-        _pip_install(python_exe, extra_deps, force=False, python_version=py_version, arch=arch)
+        _uv_install(python_exe, extra_deps, force=False,
+                    python_version=py_version, arch=arch)
 
     echo("Dependencies installed")
 
 
-def _pip_install(
+def _uv_install(
     python_exe: Path,
     packages: list[str],
     force: bool = False,
-    python_version: str | None = None,
+    python_version: str = "3.12.10",
     arch: str = "amd64",
 ) -> None:
-    """Run pip install for the given packages.
+    """Install packages into embedded Python's site-packages using uv.
+
+    Always targets Windows since the embedded Python is a Windows distribution.
+    When running on Linux (cross-compile), --python-platform ensures correct
+    marker evaluation and wheel selection.
 
     Args:
-        python_exe: Path to python.exe
+        python_exe: Path to the embedded python.exe
         packages: List of packages/wheels to install
-        force: If True, add --force-reinstall flag
+        force: If True, force reinstall
         python_version: Target Python version (e.g. "3.12.10")
         arch: Target architecture (e.g. "amd64")
 
     Raises:
-        BuildError: If pip install fails
+        BuildError: If installation fails
     """
-    if _is_cross_compile():
-        site_packages = python_exe.parent / "Lib" / "site-packages"
-        major_minor = ".".join(python_version.split(".")[:2]) if python_version else "3.12"
-        cmd = [
-            "uv",
-            "pip",
-            "install",
-            "--system",
-            "--target",
-            str(site_packages),
-            "--python-platform",
-            "windows",
-            "--python-version",
-            major_minor,
-        ]
-        if force:
-            cmd.append("--reinstall")
-        cmd.extend(packages)
+    site_packages = python_exe.parent / "Lib" / "site-packages"
+    major_minor = ".".join(python_version.split(".")[:2])
 
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode != 0:
-                error_msg = result.stderr or result.stdout or "(no output)"
-                raise BuildError(f"uv pip install failed:\n{error_msg}")
-        except OSError as e:
-            raise BuildError(f"Failed to run uv: {e}") from e
-    else:
-        args = ["-m", "pip", "install", "--no-warn-script-location"]
-        if force:
-            args.append("--force-reinstall")
-        args.extend(packages)
+    cmd = [
+        "uv", "pip", "install",
+        "--system",
+        "--target", str(site_packages),
+        "--python-version", major_minor,
+    ]
 
-        try:
-            result = _run_windows_python(python_exe, args)
-            if result.returncode != 0:
-                error_msg = result.stderr or result.stdout or "(no output)"
-                raise BuildError(f"pip install failed:\n{error_msg}")
-        except OSError as e:
-            raise BuildError(f"Failed to run pip: {e}") from e
+    if sys.platform != "win32":
+        cmd.extend(["--python-platform", "windows"])
+
+    if force:
+        cmd.append("--reinstall")
+
+    cmd.extend(packages)
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            error_msg = result.stderr or result.stdout or "(no output)"
+            raise BuildError(f"uv pip install failed:\n{error_msg}")
+    except FileNotFoundError:
+        raise BuildError(
+            "uv not found. Install it with: pip install uv"
+        )
+    except OSError as e:
+        raise BuildError(f"Failed to run uv: {e}") from e
