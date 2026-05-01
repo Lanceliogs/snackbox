@@ -54,6 +54,7 @@ class VersionConfig:
 class InstallerConfig:
     enabled: bool = True
     template: str | None = None
+    app_guid: str | None = None  # Windows AppId GUID for upgrades
     publisher: str = ""
     url: str = ""
     license: str | None = None
@@ -188,6 +189,7 @@ def _parse_installer(data: dict[str, Any]) -> InstallerConfig:
     return InstallerConfig(
         enabled=inst_data.get("enabled", True),
         template=inst_data.get("template"),
+        app_guid=inst_data.get("app_guid"),
         publisher=inst_data.get("publisher", ""),
         url=inst_data.get("url", ""),
         license=inst_data.get("license"),

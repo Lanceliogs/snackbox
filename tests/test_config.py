@@ -170,6 +170,7 @@ class TestParseInstaller:
     def test_defaults(self):
         inst = _parse_installer({})
         assert inst.enabled is True
+        assert inst.app_guid is None
         assert inst.add_to_path is True
         assert inst.desktop_shortcut is False
         assert inst.start_menu is True
@@ -186,6 +187,15 @@ class TestParseInstaller:
         assert inst.enabled is False
         assert inst.publisher == "Test"
         assert inst.url == "https://test.com"
+
+    def test_app_guid(self):
+        data = {
+            "installer": {
+                "app_guid": "{61E7BD3B-F815-4BA5-B8AD-AFF42431A546}",
+            }
+        }
+        inst = _parse_installer(data)
+        assert inst.app_guid == "{61E7BD3B-F815-4BA5-B8AD-AFF42431A546}"
 
 
 class TestLoadConfig:

@@ -84,6 +84,7 @@ def build_installer(
         app_name=config.app.name,
         slug=config.app.slug,
         version=version,
+        app_guid=config.installer.app_guid,
         publisher=config.installer.publisher,
         url=config.installer.url,
         install_dir=config.installer.install_dir,

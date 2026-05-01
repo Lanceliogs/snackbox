@@ -8,6 +8,7 @@ launcher:
   console: "yes"
 installer:
   enabled: true
+  app_guid: "{BCF3B1F0-FD1F-44A9-BDBE-A596F464B7DD}"
   publisher: "Lanceliogs"
   install_dir: "{localappdata}\\Snackbox"
   add_to_path: true

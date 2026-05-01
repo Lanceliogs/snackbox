@@ -4,7 +4,8 @@
 [Setup]
 AppName={{ app_name }}
 AppVersion={{ version }}
-AppPublisher={{ publisher }}
+{% if app_guid %}AppId={{ '{' }}{{ app_guid }}
+{% endif %}AppPublisher={{ publisher }}
 AppPublisherURL={{ url }}
 DefaultDirName={{ install_dir }}
 DefaultGroupName={{ app_name }}
