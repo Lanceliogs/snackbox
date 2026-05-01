@@ -87,7 +87,6 @@ def _run_poetry_build(project_root: Path) -> None:
     )
 
 
-
 def _run_hatch_build(project_root: Path) -> None:
     """Build wheel using Hatch."""
     _run_command(
