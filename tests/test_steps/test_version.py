@@ -42,8 +42,7 @@ class TestReadPyprojectVersion:
     def test_dynamic_versioning_uses_git_tag(self, tmp_path: Path):
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text(
-            '[tool.poetry]\nversion = "0.0.0"\n\n'
-            "[tool.poetry-dynamic-versioning]\nenable = true\n"
+            '[tool.poetry]\nversion = "0.0.0"\n\n[tool.poetry-dynamic-versioning]\nenable = true\n'
         )
 
         with patch("snackbox.steps.version._get_version_from_git_tag", return_value="0.5.1"):
@@ -53,8 +52,7 @@ class TestReadPyprojectVersion:
     def test_dynamic_versioning_no_tag_falls_back(self, tmp_path: Path):
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text(
-            '[tool.poetry]\nversion = "0.0.0"\n\n'
-            "[tool.poetry-dynamic-versioning]\nenable = true\n"
+            '[tool.poetry]\nversion = "0.0.0"\n\n[tool.poetry-dynamic-versioning]\nenable = true\n'
         )
 
         messages = []
