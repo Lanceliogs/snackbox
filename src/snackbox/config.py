@@ -94,10 +94,14 @@ def _parse_app(data: dict[str, Any]) -> AppConfig:
     if "app" not in data:
         raise ConfigError("Missing required 'app' section")
     app_data = data["app"]
+    version_from = app_data.get("version_from", "pyproject.toml")
+    if version_from != "git" and not version_from.endswith(".toml"):
+        raise ConfigError(f"Invalid version_from '{version_from}'. Use 'git' or a .toml filename")
+
     return AppConfig(
         name=_get_required(app_data, "name", "app"),
         slug=_get_required(app_data, "slug", "app"),
-        version_from=app_data.get("version_from", "pyproject.toml"),
+        version_from=version_from,
         icon=app_data.get("icon"),
     )
 

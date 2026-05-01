@@ -104,9 +104,13 @@ def setup_python(
     echo("Patching Python configuration...")
     _patch_pth_file(python_dir, version)
 
-    # Bootstrap pip
-    echo("Installing pip...")
-    _install_pip(python_dir, cache, echo)
+    # Bootstrap pip (skip when cross-compiling — uv handles deps instead,
+    # and Wine+Python is unreliable for network operations)
+    if _is_cross_compile():
+        echo("Skipping pip (cross-compile uses uv)")
+    else:
+        echo("Installing pip...")
+        _install_pip(python_dir, cache, echo)
 
     echo(f"Python {version} ready")
     return python_dir
