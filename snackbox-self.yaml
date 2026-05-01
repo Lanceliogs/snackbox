@@ -2,7 +2,7 @@
 app:
   name: "Snackbox"
   slug: "snackbox"
-  version_from: "pyproject.toml"
+  version_from: "git"
 launcher:
   entry_point: "snackbox"
   console: "yes"
