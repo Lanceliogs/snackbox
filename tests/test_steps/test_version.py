@@ -12,7 +12,6 @@ from snackbox.steps.version import (
     _get_version_from_git_tag,
     _is_git_dirty,
     _read_pyproject_version,
-    _uses_dynamic_versioning,
     stamp_version,
 )
 
@@ -39,28 +38,6 @@ class TestReadPyprojectVersion:
         version = _read_pyproject_version(tmp_path, "pyproject.toml")
         assert version == "1.2.3"
 
-    def test_dynamic_versioning_uses_git_tag(self, tmp_path: Path):
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            '[tool.poetry]\nversion = "0.0.0"\n\n[tool.poetry-dynamic-versioning]\nenable = true\n'
-        )
-
-        with patch("snackbox.steps.version._get_version_from_git_tag", return_value="0.5.1"):
-            version = _read_pyproject_version(tmp_path, "pyproject.toml", echo=lambda x: None)
-        assert version == "0.5.1"
-
-    def test_dynamic_versioning_no_tag_falls_back(self, tmp_path: Path):
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(
-            '[tool.poetry]\nversion = "0.0.0"\n\n[tool.poetry-dynamic-versioning]\nenable = true\n'
-        )
-
-        messages = []
-        with patch("snackbox.steps.version._get_version_from_git_tag", return_value=None):
-            version = _read_pyproject_version(tmp_path, "pyproject.toml", echo=messages.append)
-        assert version == "0.0.0"
-        assert any("Warning" in m for m in messages)
-
     def test_file_not_found(self, tmp_path: Path):
         with pytest.raises(BuildError, match="Version source not found"):
             _read_pyproject_version(tmp_path, "nonexistent.toml")
@@ -71,24 +48,6 @@ class TestReadPyprojectVersion:
 
         with pytest.raises(BuildError, match="Could not find version"):
             _read_pyproject_version(tmp_path, "pyproject.toml")
-
-
-class TestUsesDynamicVersioning:
-    def test_enabled(self):
-        content = "[tool.poetry-dynamic-versioning]\nenable = true\n"
-        assert _uses_dynamic_versioning(content) is True
-
-    def test_disabled(self):
-        content = "[tool.poetry-dynamic-versioning]\nenable = false\n"
-        assert _uses_dynamic_versioning(content) is False
-
-    def test_missing_section(self):
-        content = '[tool.poetry]\nversion = "1.0.0"\n'
-        assert _uses_dynamic_versioning(content) is False
-
-    def test_section_without_enable(self):
-        content = "[tool.poetry-dynamic-versioning]\nvcs = git\n"
-        assert _uses_dynamic_versioning(content) is False
 
 
 class TestGetVersionFromGitTag:
@@ -206,3 +165,37 @@ class TestStampVersion:
             version = stamp_version(config, release_dir, echo=lambda x: None)
 
         assert version == "1.2.3.abc1234.dirty"
+
+    def test_version_from_git(self, tmp_project: Path):
+        config_file = tmp_project / "snackbox.yaml"
+        content = config_file.read_text()
+        content = content.replace('version_from: "pyproject.toml"', 'version_from: "git"')
+        config_file.write_text(content)
+
+        config = load_config(config_file)
+        release_dir = tmp_project / "release"
+        release_dir.mkdir()
+
+        with (
+            patch("snackbox.steps.version._get_version_from_git_tag", return_value="2.0.0.post3"),
+            patch("snackbox.steps.version._is_git_dirty", return_value=False),
+        ):
+            version = stamp_version(config, release_dir, echo=lambda x: None)
+
+        assert version == "2.0.0.post3"
+
+    def test_version_from_git_no_tags(self, tmp_project: Path):
+        config_file = tmp_project / "snackbox.yaml"
+        content = config_file.read_text()
+        content = content.replace('version_from: "pyproject.toml"', 'version_from: "git"')
+        config_file.write_text(content)
+
+        config = load_config(config_file)
+        release_dir = tmp_project / "release"
+        release_dir.mkdir()
+
+        with (
+            patch("snackbox.steps.version._get_version_from_git_tag", return_value=None),
+            pytest.raises(BuildError, match="No git tags found"),
+        ):
+            stamp_version(config, release_dir, echo=lambda x: None)

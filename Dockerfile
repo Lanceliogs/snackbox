@@ -40,7 +40,7 @@ RUN mkdir -p /snackbox/cache/python && \
     done
 
 # Install Poetry and snackbox
-RUN pip3 install --break-system-packages poetry
+RUN pip3 install --break-system-packages poetry uv
 COPY . /snackbox/src
 RUN pip3 install --break-system-packages /snackbox/src
 

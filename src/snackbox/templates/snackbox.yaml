@@ -5,7 +5,7 @@
 app:
   name: "My App"                        # Display name (installer, window title)
   slug: "myapp"                         # Short name for folders, exe, registry
-  version_from: "pyproject.toml"        # Read version from pyproject.toml
+  version_from: "pyproject.toml"        # "pyproject.toml" or "git" (uses git describe --tags)
   # icon: "assets/myapp.ico"            # .ico file for launcher and installer
 
 # -- Python --
