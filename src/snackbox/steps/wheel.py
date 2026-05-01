@@ -40,10 +40,10 @@ def build_wheel(
         _run_custom_command(custom_command, project_root)
     elif backend == "poetry":
         _run_poetry_build(project_root)
-    elif backend == "pip":
-        _run_pip_build(project_root)
     elif backend == "hatch":
         _run_hatch_build(project_root)
+    elif backend == "uv":
+        _run_uv_build(project_root)
     else:
         raise BuildError(f"Unknown build backend: {backend}")
 
@@ -87,16 +87,6 @@ def _run_poetry_build(project_root: Path) -> None:
     )
 
 
-def _run_pip_build(project_root: Path) -> None:
-    """Build wheel using pip."""
-    dist_dir = project_root / "dist"
-    dist_dir.mkdir(exist_ok=True)
-    _run_command(
-        ["pip", "wheel", ".", "--no-deps", "-w", "dist"],
-        project_root,
-        "pip",
-    )
-
 
 def _run_hatch_build(project_root: Path) -> None:
     """Build wheel using Hatch."""
@@ -104,6 +94,15 @@ def _run_hatch_build(project_root: Path) -> None:
         ["hatch", "build", "-t", "wheel"],
         project_root,
         "hatch",
+    )
+
+
+def _run_uv_build(project_root: Path) -> None:
+    """Build wheel using uv."""
+    _run_command(
+        ["uv", "build", "--wheel"],
+        project_root,
+        "uv",
     )
 
 
