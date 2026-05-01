@@ -127,7 +127,8 @@ def _run_iscc(
     try:
         if _is_cross_compile():
             # Use Wine to run ISCC on Linux
-            cmd = ["wine", iscc, str(iss_path)]
+            wine_iss = _wine_path(iss_path.resolve())
+            cmd = ["wine", iscc, wine_iss]
             env = os.environ.copy()
             env["WINEDEBUG"] = "-all"
         else:
