@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "snackbox"
-version = "0.1.1"
+version = "0.0.0"  # Managed by poetry-dynamic-versioning from git tags
 description = "Release pipeline for Python apps on Windows — embedded Python, launcher stub, Inno Setup installer."
 authors = ["Lanceliogs <lanceliogs@users.noreply.github.com>"]
 readme = "README.md"
@@ -56,6 +56,12 @@ pythonpath = ["src"]
 [tool.poetry.scripts]
 snackbox = "snackbox.cli:app"
 
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+pattern = "^v?(?P<base>\\d+\\.\\d+\\.\\d+)"
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
