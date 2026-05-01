@@ -14,22 +14,23 @@ OutputBaseFilename={{ slug }}-{{ version }}-setup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
-SetupIconFile={{ icon_path if icon_path else "" }}
-UninstallDisplayIcon={app}\{{ slug }}.exe
+{% if icon_path %}SetupIconFile={{ icon_path }}
+{% endif %}{% if license_path %}LicenseFile={{ license_path }}
+{% endif %}UninstallDisplayIcon={app}\{{ slug }}.exe
+
+[Tasks]
+Name: "startmenu"; Description: "Create a Start Menu shortcut"; GroupDescription: "Shortcuts:"{% if not start_menu %}; Flags: unchecked{% endif %}
+
+Name: "desktopicon"; Description: "Create a Desktop shortcut"; GroupDescription: "Shortcuts:"{% if not desktop_shortcut %}; Flags: unchecked{% endif %}
 
 [Files]
 Source: "{{ release_dir }}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Icons]
-{% if start_menu %}
-Name: "{group}\{{ app_name }}"; Filename: "{app}\{{ slug }}.exe"{% if icon_path %}; IconFilename: "{app}\{{ slug }}.exe"{% endif %}
+Name: "{group}\{{ app_name }}"; Filename: "{app}\{{ slug }}.exe"; Tasks: startmenu{% if icon_path %}; IconFilename: "{app}\{{ slug }}.exe"{% endif %}
 
-Name: "{group}\Uninstall {{ app_name }}"; Filename: "{uninstallexe}"
-{% endif %}
-{% if desktop_shortcut %}
-Name: "{commondesktop}\{{ app_name }}"; Filename: "{app}\{{ slug }}.exe"{% if icon_path %}; IconFilename: "{app}\{{ slug }}.exe"{% endif %}
-
-{% endif %}
+Name: "{group}\Uninstall {{ app_name }}"; Filename: "{uninstallexe}"; Tasks: startmenu
+Name: "{autodesktop}\{{ app_name }}"; Filename: "{app}\{{ slug }}.exe"; Tasks: desktopicon{% if icon_path %}; IconFilename: "{app}\{{ slug }}.exe"{% endif %}
 
 {% if add_to_path %}
 [Registry]
@@ -49,6 +50,5 @@ end;
 {% endif %}
 
 [Run]
-{% if start_menu %}
-Filename: "{app}\{{ slug }}.exe"; Description: "Launch {{ app_name }}"; Flags: nowait postinstall skipifsilent
-{% endif %}
+Filename: "{app}\{{ slug }}.exe"; Description: "Launch {{ app_name }}"; Flags: nowait postinstall skipifsilent{% if not run_after_install %} unchecked{% endif %}
+

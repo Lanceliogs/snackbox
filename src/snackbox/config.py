@@ -60,8 +60,9 @@ class InstallerConfig:
     license: str | None = None
     install_dir: str = "{localappdata}\\{app.slug}"
     add_to_path: bool = True
-    desktop_shortcut: bool = False
-    start_menu: bool = True
+    desktop_shortcut: bool = False  # Default checkbox state
+    start_menu: bool = True  # Default checkbox state
+    run_after_install: bool = True  # Default checkbox state
     output_dir: str = "build/installer"
 
 
@@ -197,6 +198,7 @@ def _parse_installer(data: dict[str, Any]) -> InstallerConfig:
         add_to_path=inst_data.get("add_to_path", True),
         desktop_shortcut=inst_data.get("desktop_shortcut", False),
         start_menu=inst_data.get("start_menu", True),
+        run_after_install=inst_data.get("run_after_install", True),
         output_dir=inst_data.get("output_dir", "build/installer"),
     )
 

@@ -58,6 +58,8 @@ installer:
   # license: "LICENSE"                  # License file shown during install
   install_dir: "{localappdata}\\MyApp"
   add_to_path: true
-  desktop_shortcut: false
-  start_menu: true
+  # Checkbox defaults (user can toggle during install):
+  start_menu: true                      # Start Menu shortcut (default: checked)
+  desktop_shortcut: false               # Desktop shortcut (default: unchecked)
+  run_after_install: true               # Launch app after install (default: checked)
   output_dir: "build/installer"
