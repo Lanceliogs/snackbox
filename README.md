@@ -126,6 +126,72 @@ docker run --rm -v $(pwd):/project ghcr.io/lanceliogs/snackbox build
 docker run --rm -v $(pwd):/project ghcr.io/lanceliogs/snackbox installer
 ```
 
+## CI/CD with GitHub Actions
+
+Build Windows installers in your GitHub pipeline using the Docker image:
+
+```yaml
+name: Build Windows Installer
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build-installer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Windows installer
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            ghcr.io/lanceliogs/snackbox:latest \
+            installer
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/*.exe
+```
+
+### Uploading to GitHub Releases
+
+Add a release job that attaches the installer to a GitHub release:
+
+```yaml
+  release:
+    needs: build-installer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe
+```
+
+Or use the GitHub CLI directly:
+
+```yaml
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.ref_name }}" dist/*.exe
+```
+
+See [`examples/`](examples/) for complete workflow examples.
+
 ## License
 
 MIT

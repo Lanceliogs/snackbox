@@ -1,0 +1,12 @@
+app:
+  name: myapp
+  version: 1.0.0
+  entry: myapp.cli:main
+  icon: assets/icon.ico  # optional
+
+python:
+  version: "3.12.10"
+
+installer:
+  publisher: "My Company"
+  license: LICENSE  # optional, shown during install
