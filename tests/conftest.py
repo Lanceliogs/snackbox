@@ -30,8 +30,7 @@ python:
   version: "3.12.10"
 
 build:
-  wheel:
-    backend: "poetry"
+  extra_deps: []
 
 launcher:
   entry_point: "testapp"
@@ -73,8 +72,6 @@ python:
   arch: "amd64"
 
 build:
-  wheel:
-    backend: "poetry"
   extra_deps:
     - "requests>=2.0"
 

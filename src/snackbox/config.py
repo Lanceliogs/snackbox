@@ -25,8 +25,6 @@ class PythonConfig:
 
 @dataclass
 class BuildConfig:
-    backend: str = "poetry"
-    backend_command: str | None = None
     extra_deps: list[str] = field(default_factory=list)
 
 
@@ -118,10 +116,7 @@ def _parse_python(data: dict[str, Any]) -> PythonConfig:
 def _parse_build(data: dict[str, Any]) -> BuildConfig:
     """Parse the build section."""
     build_data = data.get("build", {})
-    wheel_data = build_data.get("wheel", {})
     return BuildConfig(
-        backend=wheel_data.get("backend", "poetry"),
-        backend_command=wheel_data.get("backend_command"),
         extra_deps=build_data.get("extra_deps", []),
     )
 

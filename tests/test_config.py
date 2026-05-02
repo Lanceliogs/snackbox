@@ -70,14 +70,7 @@ class TestParsePython:
 class TestParseBuild:
     def test_defaults(self):
         build = _parse_build({})
-        assert build.backend == "poetry"
-        assert build.backend_command is None
         assert build.extra_deps == []
-
-    def test_custom_backend(self):
-        data = {"build": {"wheel": {"backend": "hatch"}}}
-        build = _parse_build(data)
-        assert build.backend == "hatch"
 
     def test_extra_deps(self):
         data = {"build": {"extra_deps": ["requests", "click>=8.0"]}}
