@@ -64,8 +64,6 @@ python:
   version: "3.12.10"
 
 build:
-  wheel:
-    backend: "poetry"  # or "pip", "hatch"
   extra_deps: []
 
 launcher:
