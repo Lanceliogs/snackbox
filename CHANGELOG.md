@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2026-05-02
+## [0.2.2] - 2026-05-02
+
+### Fixed
+- pipx: snackbox now finds its bundled `uv` binary instead of relying on PATH
+
+### Changed
+- Wheel building always uses `uv build --wheel` — removed `build.wheel.backend` and `build.wheel.backend_command` config options
+
+## [0.2.1] - 2026-05-01
 
 ### Added
 - `uv` as a required dependency — handles wheel building and package installation
@@ -17,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-compile: ISCC `.iss` file path not converted to Wine format (ISCC showed help instead of compiling)
 - Cross-compile: icon and license paths not converted to Wine format (Inno Setup "Path not found" error)
 - Cross-compile: Linux pip installed Linux-native packages (`.so` files, `uvloop`, etc.) into Windows bundle, causing ~30% installer bloat
-- pipx: snackbox now finds its bundled `uv` binary instead of relying on PATH
 
 ### Changed
 - Wheel building always uses `uv build --wheel` — removed `build.wheel.backend` and `build.wheel.backend_command` config options
