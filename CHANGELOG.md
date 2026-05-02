@@ -5,23 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2026-05-01
+## [0.2.1] - 2026-05-02
 
 ### Added
-- `uv` as a dependency — used for all package installation
-- `backend: "uv"` wheel build backend option (`uv build --wheel`)
+- `uv` as a required dependency — handles wheel building and package installation
 - `version_from: "git"` config option — reads version from git tags via `git describe --tags`, decoupled from Poetry
 - `uv` added to Docker image
+- Docker: `git safe.directory` wildcard for mounted repos in CI
 
 ### Fixed
 - Cross-compile: ISCC `.iss` file path not converted to Wine format (ISCC showed help instead of compiling)
 - Cross-compile: icon and license paths not converted to Wine format (Inno Setup "Path not found" error)
 - Cross-compile: Linux pip installed Linux-native packages (`.so` files, `uvloop`, etc.) into Windows bundle, causing ~30% installer bloat
+- pipx: snackbox now finds its bundled `uv` binary instead of relying on PATH
 
 ### Changed
+- Wheel building always uses `uv build --wheel` — removed `build.wheel.backend` and `build.wheel.backend_command` config options
 - Dependency installation uses `uv pip install --target` on all platforms (was `pip` on Windows, `pip3 --target` on Linux)
 - Pip is no longer bootstrapped into the embedded Python (~10MB saved per build)
-- Removed `pip` as a wheel build backend (redundant with `uv`)
 - `version_from` no longer checks for `[tool.poetry-dynamic-versioning]` — use `version_from: "git"` instead
 
 ## [0.1.1] - 2026-05-01
