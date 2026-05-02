@@ -1,5 +1,6 @@
 """Install dependencies into embedded Python."""
 
+import shutil
 import subprocess
 import sys
 from collections.abc import Callable
@@ -7,6 +8,26 @@ from pathlib import Path
 
 from snackbox.config import Config
 from snackbox.errors import BuildError
+
+
+def _get_uv() -> str:
+    """Find the uv binary.
+
+    Looks in the running Python's scripts directory first (handles pipx
+    installs where uv is a dependency but not on PATH), then falls back
+    to PATH lookup.
+    """
+    scripts_dir = Path(sys.executable).parent
+    uv_name = "uv.exe" if sys.platform == "win32" else "uv"
+    uv_local = scripts_dir / uv_name
+    if uv_local.exists():
+        return str(uv_local)
+
+    uv_path = shutil.which("uv")
+    if uv_path:
+        return uv_path
+
+    raise BuildError("uv not found. Install it with: pip install uv")
 
 
 def install_deps(
@@ -74,8 +95,10 @@ def _uv_install(
     site_packages = python_exe.parent / "Lib" / "site-packages"
     major_minor = ".".join(python_version.split(".")[:2])
 
+    uv = _get_uv()
+
     cmd = [
-        "uv",
+        uv,
         "pip",
         "install",
         "--system",
@@ -98,7 +121,5 @@ def _uv_install(
         if result.returncode != 0:
             error_msg = result.stderr or result.stdout or "(no output)"
             raise BuildError(f"uv pip install failed:\n{error_msg}")
-    except FileNotFoundError:
-        raise BuildError("uv not found. Install it with: pip install uv")
     except OSError as e:
         raise BuildError(f"Failed to run uv: {e}") from e

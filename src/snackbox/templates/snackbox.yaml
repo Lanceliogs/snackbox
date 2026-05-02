@@ -15,11 +15,7 @@ python:
 
 # -- Build --
 build:
-  wheel:
-    backend: "poetry"                   # poetry, hatch, uv, or custom
-    # backend_command: "python -m build --wheel"  # custom override
-
-  extra_deps: []                        # Extra pip packages beyond wheel deps
+  extra_deps: []                        # Extra packages beyond wheel deps
     # - "some-optional-package==1.2.3"
 
 # -- Launcher stub --
